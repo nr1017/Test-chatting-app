@@ -10,7 +10,7 @@ const GlobalStyle = createGlobalStyle`
  body {
   font-family: 'Spoqa Han Sans Neo', 'sans-serif';
 
-  a {
+  a, button {
    text-decoration: none;
    cursor: pointer;
   }
