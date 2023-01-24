@@ -1,100 +1,105 @@
 import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
-import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
-import { initializeApp } from 'firebase/app';
 import styled from 'styled-components';
-import { getAnalytics } from 'firebase/analytics';
+import { useNavigate } from 'react-router-dom';
+import { createUserWithEmailAndPassword, updateProfile } from 'firebase/auth';
+import { auth, storage, db } from '../firebase';
+import { ref, uploadBytesResumable, getDownloadURL } from 'firebase/storage';
+import { doc, setDoc } from 'firebase/firestore';
 
 const Register = () => {
-  const firebaseConfig = {
-    apiKey: 'AIzaSyC6yCUcB5iO-SPWoJ1cWbAGQINJ5XCdHsA',
-    authDomain: 'chatting-84895.firebaseapp.com',
-    projectId: 'chatting-84895',
-    storageBucket: 'chatting-84895.appspot.com',
-    messagingSenderId: '197986988899',
-    appId: '1:197986988899:web:05ae3f992edb35483ad956',
-    measurementId: 'G-B2WKDDFT3L',
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  // eslint-disable-next-line
-  const analytics = getAnalytics(app);
-
-  const auth = getAuth();
-  const [inputValues, setInputValues] = useState({
-    id: '',
-    pw: '',
-  });
   const navigate = useNavigate();
+  // const [inputValues, setInputValues] = useState({
+  //   name: '',
+  //   id: '',
+  //   pw: '',
+  //   file: '',
+  // });
+  const [error, setError] = useState(false);
 
-  const isValid =
-    inputValues.id.includes('@') && inputValues.pw.length >= 5 ? false : true;
+  // const isValid =
+  //   inputValues.name.length >= 3 &&
+  //   inputValues.id.includes('@') &&
+  //   inputValues.pw.length >= 5
+  //     ? false
+  //     : true;
 
-  const saveUserInput = e => {
+  // const saveUserInput = e => {
+  //   e.preventDefault();
+  //   const { name, value } = e.target;
+  //   setInputValues({ ...inputValues, [name]: value });
+  // };
+
+  // const resetInput = () => {
+  //   setInputValues({ name: '', id: '', pw: '', file: '' });
+  // };
+
+  const signUp = async e => {
     e.preventDefault();
-    const { name, value } = e.target;
-    setInputValues({ ...inputValues, [name]: value });
-  };
+    const displayName = e.target[0].value;
+    const email = e.target[1].value;
+    const password = e.target[2].value;
+    const file = e.target[3].files[0];
 
-  const resetInput = () => {
-    setInputValues({ id: '', pw: '' });
-  };
+    try {
+      const res = await createUserWithEmailAndPassword(auth, email, password);
+      const storageRef = ref(storage, `${displayName}`);
 
-  const signUp = e => {
-    e.preventDefault();
-    createUserWithEmailAndPassword(auth, inputValues.id, inputValues.pw)
-      .then(userCredential => {
-        alert('회원가입이 완료되었습니다!');
-        resetInput();
-        // Signed in
-        // eslint-disable-next-line
-        const user = userCredential.user;
-        // ...
-      })
-      .catch(error => {
-        const errorCode = error.code;
-        if (errorCode === 'auth/email-already-in-use') {
-          alert('이미 존재하는 이메일입니다.');
-          resetInput();
-        }
-        // ..
+      await uploadBytesResumable(storageRef, file).then(() => {
+        getDownloadURL(storageRef).then(async downloadURL => {
+          try {
+            await updateProfile(res.user, {
+              displayName,
+              photoURL: downloadURL,
+            });
+            await setDoc(doc(db, 'users', res.user.uid), {
+              displayName,
+              email,
+              photoURL: downloadURL,
+              uid: res.user.uid,
+            });
+            await setDoc(doc(db, 'userChats', res.user.uid), {});
+            navigate('/');
+          } catch (err) {
+            console.log(err);
+            setError(true);
+          }
+        });
       });
+    } catch (err) {
+      console.log(err);
+      setError(true);
+    }
   };
 
   return (
     <RegisterContainer>
-      <RegisterForm>
+      <RegisterForm onSubmit={signUp}>
         <h1>Maum Chat</h1>
         <div>
-          <InputText type="text" placeholder="사용자이름" />
-          <InputText
-            onChange={saveUserInput}
-            name="id"
-            value={inputValues.id}
-            type="email"
-            placeholder="이메일"
+          <InputText name="name" type="text" placeholder="사용자이름" />
+          <InputText name="id" type="email" placeholder="이메일" />
+          <InputText name="pw" type="password" placeholder="비밀번호" />
+          <input
+            name="file"
+            style={{ display: 'none' }}
+            type="file"
+            id="file"
           />
-          <InputText
-            onChange={saveUserInput}
-            name="pw"
-            value={inputValues.pw}
-            type="password"
-            placeholder="비밀번호"
-          />
-          <input style={{ display: 'none' }} type="file" id="file" />
           <label htmlFor="file">
             <i className="fa-solid fa-image" />
             &nbsp;&nbsp;<span>프로필 사진 추가</span>
           </label>
-          <RegisterButton type="submit" onClick={signUp} disabled={isValid}>
-            회원가입
-          </RegisterButton>
-          <span>
-            이미 계정이 있신가요?
-            <button onClick={() => navigate('/')}>로그인하기</button>
-          </span>
+          <RegisterButton>회원가입</RegisterButton>
+          {error && (
+            <span style={{ color: 'red', fontSize: '14px' }}>
+              이미 존재하는 이메일입니다
+            </span>
+          )}
         </div>
+        <p>
+          이미 계정이 있신가요?
+          <button onClick={() => navigate('/login')}>로그인하기</button>
+        </p>
       </RegisterForm>
     </RegisterContainer>
   );
@@ -133,7 +138,8 @@ const RegisterForm = styled.form`
     }
   }
 
-  span {
+  p {
+    margin-top: 18px;
     font-size: 14px;
 
     button {
