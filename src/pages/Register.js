@@ -1,15 +1,11 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import styled from 'styled-components';
+import { getAuth, createUserWithEmailAndPassword } from 'firebase/auth';
 import { initializeApp } from 'firebase/app';
+import styled from 'styled-components';
 import { getAnalytics } from 'firebase/analytics';
-import {
-  getAuth,
-  createUserWithEmailAndPassword,
-  signInWithEmailAndPassword,
-} from 'firebase/auth';
 
-const Login = () => {
+const Register = () => {
   const firebaseConfig = {
     apiKey: 'AIzaSyC6yCUcB5iO-SPWoJ1cWbAGQINJ5XCdHsA',
     authDomain: 'chatting-84895.firebaseapp.com',
@@ -24,8 +20,8 @@ const Login = () => {
   const app = initializeApp(firebaseConfig);
   // eslint-disable-next-line
   const analytics = getAnalytics(app);
-  const auth = getAuth();
 
+  const auth = getAuth();
   const [inputValues, setInputValues] = useState({
     id: '',
     pw: '',
@@ -66,97 +62,99 @@ const Login = () => {
       });
   };
 
-  const signIn = e => {
-    e.preventDefault();
-    signInWithEmailAndPassword(auth, inputValues.id, inputValues.pw)
-      .then(userCredential => {
-        // Signed in
-        const user = userCredential.user;
-        alert(`${user.email} 님 환영합니다!`);
-        navigate('/main');
-        // ...
-      })
-      .catch(error => {
-        const errorCode = error.code;
-        if (errorCode === 'auth/wrong-password') {
-          alert('비밀번호를 확인하세요.');
-        } else {
-          alert('존재하지 않는 이메일입니다.');
-        }
-      });
-  };
-
   return (
-    <LoginPage>
-      <LoginForm>
-        <h1>Maumchat</h1>
+    <RegisterContainer>
+      <RegisterForm>
+        <h1>Maum Chat</h1>
         <div>
-          <input
+          <InputText type="text" placeholder="사용자이름" />
+          <InputText
             onChange={saveUserInput}
             name="id"
             value={inputValues.id}
             type="email"
             placeholder="이메일"
           />
-          <input
+          <InputText
             onChange={saveUserInput}
             name="pw"
             value={inputValues.pw}
             type="password"
             placeholder="비밀번호"
           />
-          <Button onClick={signIn} type="submit" disabled={isValid}>
-            로그인
-          </Button>
-          <Button type="submit" onClick={signUp} disabled={isValid}>
+          <input style={{ display: 'none' }} type="file" id="file" />
+          <label htmlFor="file">
+            <i className="fa-solid fa-image" />
+            &nbsp;&nbsp;<span>프로필 사진 추가</span>
+          </label>
+          <RegisterButton type="submit" onClick={signUp} disabled={isValid}>
             회원가입
-          </Button>
+          </RegisterButton>
+          <span>
+            이미 계정이 있신가요?
+            <button onClick={() => navigate('/')}>로그인하기</button>
+          </span>
         </div>
-      </LoginForm>
-    </LoginPage>
+      </RegisterForm>
+    </RegisterContainer>
   );
 };
 
-export default Login;
+export default Register;
 
-const LoginPage = styled.div`
+const RegisterContainer = styled.div`
   ${({ theme }) => theme.variables.flex()}
   height: 100vh;
   width: 100vw;
   background-color: #fafafa;
 `;
 
-const LoginForm = styled.form`
+const RegisterForm = styled.form`
   ${({ theme }) => theme.variables.flex('column')};
-  height: 450px;
+  height: 550px;
   width: 400px;
   background-color: #ffffff;
   border: 2px solid #eaeaea;
 
   h1 {
-    margin-bottom: 24px;
+    margin-bottom: 40px;
     font-size: 45px;
     font-weight: 900;
-    font-family: 'Lobster', cursive;
   }
 
   div {
     ${({ theme }) => theme.variables.flex('column')};
     width: 250px;
 
-    input {
-      margin-bottom: 6px;
-      padding: 12px;
-      width: 100%;
-      background-color: #fafafa;
-      border: 1px solid #eaeaea;
-      border-radius: 5px;
+    label {
+      margin-top: 12px;
+      color: #787878;
+      cursor: pointer;
+    }
+  }
+
+  span {
+    font-size: 14px;
+
+    button {
+      border-style: none;
+      background-color: #ffffff;
+      color: #0095f6;
     }
   }
 `;
 
-const Button = styled.button`
-  margin-top: 12px;
+const InputText = styled.input`
+  margin-top: 6px;
+  padding: 12px;
+  width: 100%;
+  background-color: #fafafa;
+  border: 1px solid #eaeaea;
+  border-radius: 5px;
+`;
+
+const RegisterButton = styled.button`
+  margin: 30px 0;
   padding: 6px;
   width: 100%;
   background-color: #0095f6;
