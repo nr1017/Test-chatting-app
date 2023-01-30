@@ -1,32 +1,18 @@
-import React, { useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import React, { useContext, useState } from 'react';
 import styled from 'styled-components';
-import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
-import { initializeApp } from 'firebase/app';
-import { getAnalytics } from 'firebase/analytics';
+import { useNavigate } from 'react-router-dom';
+import { signInWithEmailAndPassword } from 'firebase/auth';
+import { auth } from '../firebase';
+import { AuthContext } from '../context/AuthContext';
 
 const Login = () => {
-  const firebaseConfig = {
-    apiKey: 'AIzaSyC6yCUcB5iO-SPWoJ1cWbAGQINJ5XCdHsA',
-    authDomain: 'chatting-84895.firebaseapp.com',
-    projectId: 'chatting-84895',
-    storageBucket: 'chatting-84895.appspot.com',
-    messagingSenderId: '197986988899',
-    appId: '1:197986988899:web:05ae3f992edb35483ad956',
-    measurementId: 'G-B2WKDDFT3L',
-  };
-
-  // Initialize Firebase
-  const app = initializeApp(firebaseConfig);
-  // eslint-disable-next-line
-  const analytics = getAnalytics(app);
-  const auth = getAuth();
+  const navigate = useNavigate();
+  const { currentUser } = useContext(AuthContext);
 
   const [inputValues, setInputValues] = useState({
     id: '',
     pw: '',
   });
-  const navigate = useNavigate();
 
   const isValid =
     inputValues.id.includes('@') && inputValues.pw.length >= 5 ? false : true;
@@ -47,8 +33,8 @@ const Login = () => {
       .then(userCredential => {
         // Signed in
         const user = userCredential.user;
-        alert(`${user.email} 님 환영합니다!`);
-        navigate('/main');
+        alert(`${currentUser.displayName}님 환영합니다!`);
+        navigate('/');
         // ...
       })
       .catch(error => {
@@ -63,7 +49,7 @@ const Login = () => {
 
   return (
     <LoginContainer>
-      <LoginForm>
+      <LoginForm onSubmit={signIn} type="submit">
         <h1>Maum Chat</h1>
         <div>
           <input
@@ -80,9 +66,7 @@ const Login = () => {
             type="password"
             placeholder="비밀번호"
           />
-          <LoginButton onClick={signIn} type="submit" disabled={isValid}>
-            로그인
-          </LoginButton>
+          <LoginButton disabled={isValid}>로그인</LoginButton>
           <span>
             계정이 없으신가요?
             <button onClick={() => navigate('/register')}>가입하기</button>

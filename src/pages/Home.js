@@ -1,6 +1,6 @@
 import React from 'react';
-import Chat from '../components/Chat';
-import Sidebar from '../components/Sidebar';
+import Chat from '../components/chatting/Chat';
+import Sidebar from '../components/sidebar/Sidebar';
 import styled from 'styled-components';
 
 const Home = () => {
@@ -30,4 +30,8 @@ const HomeContainer = styled.div`
   border: 1px solid #ffffff;
   border-radius: 10px;
   overflow: hidden;
+
+  @media ${({ theme }) => theme.style.tablet} {
+    width: 90%;
+  }
 `;
