@@ -33,6 +33,7 @@ const Search = () => {
         setUser(doc.data());
       });
     } catch (err) {
+      console.log(err);
       setErr(true);
     }
   };
@@ -74,6 +75,8 @@ const Search = () => {
     } catch (err) {
       console.log(err);
     }
+    setUser(null);
+    setUsername('');
   };
 
   return (
@@ -84,6 +87,7 @@ const Search = () => {
           placeholder="사용자 찾기"
           onKeyDown={handleKey}
           onChange={e => setUsername(e.target.value)}
+          value={username}
         />
       </SearchForm>
       {err && <span>사용자를 찾을 수 없습니다.</span>}

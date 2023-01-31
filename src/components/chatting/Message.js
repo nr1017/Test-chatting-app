@@ -1,46 +1,51 @@
-import React from 'react';
+import React, { useContext, useEffect, useRef } from 'react';
 import styled from 'styled-components';
+import { AuthContext } from '../../context/AuthContext';
+import { ChatContext } from '../../context/ChatContext';
 
-const Message = () => {
+const Message = ({ message }) => {
+  const { currentUser } = useContext(AuthContext);
+  const { data } = useContext(ChatContext);
+
+  const ref = useRef();
+
+  useEffect(() => {
+    ref.current?.scrollIntoView({ behavior: 'smooth' });
+  }, [message]);
+
   return (
-    <MessageOwner>
+    <MessageWrapper
+      ref={ref}
+      owner={message.senderId === currentUser.uid ? true : false}
+    >
       <MessageInfo>
         <img
-          src="https://images.unsplash.com/photo-1517849845537-4d257902454a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
-          alt="dog"
+          src={
+            message.senderId === currentUser.uid
+              ? currentUser.photoURL
+              : data.user.photoURL
+          }
+          alt=""
         />
         <span>just now</span>
       </MessageInfo>
-      <MessageOwnerContent>
-        <p>hello</p>
-        <img
-          src="https://images.unsplash.com/photo-1517849845537-4d257902454a?ixlib=rb-4.0.3&ixid=MnwxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=870&q=80"
-          alt=""
-        />
-      </MessageOwnerContent>
-    </MessageOwner>
+      <MessageContent
+        owner={message.senderId === currentUser.uid ? true : false}
+      >
+        <p>{message.text}</p>
+        {message.img && <img src={message.img} alt="" />}
+      </MessageContent>
+    </MessageWrapper>
   );
 };
 
 export default Message;
 
-// const MessageWrapper = styled.div`
-//   display: flex;
-//   margin-bottom: 20px;
-//   gap: 10px;
-// `;
-
-const MessageOwner = styled.div`
+const MessageWrapper = styled.div`
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: ${props => props.owner && 'row-reverse'};
   margin-bottom: 20px;
   gap: 10px;
-
-  /* p {
-    background-color: #8da4f1;
-  color: ${({ theme }) => theme.style.white};
-    border-radius: 10px 0 10px 10px;
-  } */
 `;
 
 const MessageInfo = styled.div`
@@ -55,34 +60,21 @@ const MessageInfo = styled.div`
     object-fit: cover;
   }
 `;
-// const MessageContent = styled.div`
-//   max-width: 80%;
-//   ${({ theme }) => theme.variables.flex('column', 'flex-start', 'flex-start')}
-//   gap: 10px;
 
-//   p {
-//     background-color: ${({ theme }) => theme.style.white};
-//     padding: 10px 20px;
-//     border-radius: 0px 10px 10px 10px;
-//     max-width: max-content;
-//   }
-
-//   img {
-//     width: 50%;
-//   }
-// `;
-
-const MessageOwnerContent = styled.div`
+const MessageContent = styled.div`
   max-width: 80%;
-  ${({ theme }) => theme.variables.flex('column', 'flex-start', 'flex-end')}
+  display: flex;
+  flex-direction: column;
+  align-items: ${props => props.owner && 'flex-end'};
   gap: 10px;
 
   p {
-    background-color: #8da4f1;
-    color: ${({ theme }) => theme.style.white};
     padding: 10px 20px;
-    border-radius: 10px 0 10px 10px;
     max-width: max-content;
+    background-color: ${props => (props.owner ? '#8da4f1' : 'white')};
+    color: ${props => props.owner && 'white'};
+    border-radius: ${props =>
+      props.owner ? '10px 0px 10px 10px' : '0px 10px 10px 10px'};
   }
 
   img {
