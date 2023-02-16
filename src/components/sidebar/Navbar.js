@@ -11,7 +11,7 @@ const Navbar = () => {
 
   return (
     <NavbarWrapper>
-      <Logo>Maum Chat</Logo>
+      <Logo>NARA Chat</Logo>
       <User>
         <img src={currentUser.photoURL} alt="" />
         <span>{currentUser.displayName}</span>

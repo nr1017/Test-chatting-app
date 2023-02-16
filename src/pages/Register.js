@@ -74,7 +74,7 @@ const Register = () => {
   return (
     <RegisterContainer>
       <RegisterForm onSubmit={signUp}>
-        <h1>Maum Chat</h1>
+        <h1>NARA Chat</h1>
         <div>
           <InputText name="name" type="text" placeholder="사용자이름" />
           <InputText name="id" type="email" placeholder="이메일" />

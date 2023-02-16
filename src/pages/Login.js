@@ -6,45 +6,28 @@ import { auth } from '../firebase';
 import { AuthContext } from '../context/AuthContext';
 
 const Login = () => {
+  const [err, setErr] = useState(false);
   const navigate = useNavigate();
   const { currentUser } = useContext(AuthContext);
 
-  const [inputValues, setInputValues] = useState({
-    id: '',
-    pw: '',
-  });
-
-  const isValid =
-    inputValues.id.includes('@') && inputValues.pw.length >= 5 ? false : true;
-
-  const saveUserInput = e => {
+  const signIn = async e => {
     e.preventDefault();
-    const { name, value } = e.target;
-    setInputValues({ ...inputValues, [name]: value });
-  };
+    const email = e.target[0].value;
+    const password = e.target[1].value;
 
-  const resetInput = () => {
-    setInputValues({ id: '', pw: '' });
-  };
-
-  const signIn = e => {
-    e.preventDefault();
-    signInWithEmailAndPassword(auth, inputValues.id, inputValues.pw)
-      .then(userCredential => {
-        // Signed in
-        const user = userCredential.user;
-        alert(`${currentUser.displayName}님 환영합니다!`);
-        navigate('/');
-        // ...
-      })
-      .catch(error => {
-        const errorCode = error.code;
-        if (errorCode === 'auth/wrong-password') {
-          alert('비밀번호를 확인하세요.');
-        } else {
-          alert('존재하지 않는 이메일입니다.');
-        }
-      });
+    try {
+      await signInWithEmailAndPassword(auth, email, password);
+      alert(`${currentUser.displayName}님 환영합니다!`);
+      navigate('/');
+    } catch (err) {
+      setErr(true);
+      const errorCode = err.code;
+      if (errorCode === 'auth/wrong-password') {
+        alert('비밀번호를 확인하세요.');
+      } else if (errorCode === 'auth/user-not-found') {
+        alert('존재하지 않는 이메일입니다.');
+      }
+    }
   };
 
   return (
@@ -52,21 +35,9 @@ const Login = () => {
       <LoginForm onSubmit={signIn} type="submit">
         <h1>Maum Chat</h1>
         <div>
-          <input
-            onChange={saveUserInput}
-            name="id"
-            value={inputValues.id}
-            type="email"
-            placeholder="이메일"
-          />
-          <input
-            onChange={saveUserInput}
-            name="pw"
-            value={inputValues.pw}
-            type="password"
-            placeholder="비밀번호"
-          />
-          <LoginButton disabled={isValid}>로그인</LoginButton>
+          <input name="id" type="email" placeholder="이메일" />
+          <input name="pw" type="password" placeholder="비밀번호" />
+          <LoginButton>로그인</LoginButton>
           <span>
             계정이 없으신가요?
             <button onClick={() => navigate('/register')}>가입하기</button>
